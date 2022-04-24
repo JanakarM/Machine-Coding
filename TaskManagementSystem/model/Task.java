@@ -1,6 +1,7 @@
 package design_1.model;
 
 import design_1.constants.TaskStatus;
+import design_1.constants.TaskType;
 
 public class Task {
     Integer id;
@@ -12,6 +13,11 @@ public class Task {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public Integer getId() {
+        return id;
+    }
+
     public void setStatus(TaskStatus status) {
         this.status = status;
     }
@@ -46,5 +52,21 @@ public class Task {
 
     public Long getLastUpdatedDate() {
         return lastUpdatedDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id=" + id +
+                ", startDate=" + startDate +
+                ", lastUpdatedDate=" + lastUpdatedDate +
+                ", customer=" + customer.email +
+                ", salesMan=" + salesMan.email +
+                ", status=" + status +
+                '}';
+    }
+
+    public Long getStartDate() {
+        return startDate;
     }
 }

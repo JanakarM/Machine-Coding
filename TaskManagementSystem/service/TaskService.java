@@ -33,22 +33,28 @@ public class TaskService extends CommonConstants {
         salesManVsTasks.get(salesMan.getId()).add(task);
         return task;
     }
-    void updateTaskStatus(Integer taskId, CustomerStatus customerStatus, Long date){
+    Integer updateTaskStatus(Integer taskId, CustomerStatus customerStatus, Long date){
+        Integer followUpTaskId=null;
         Task task=tasksList.get(taskId);
         CustomerStatus customerStatusFinal=customerStatus;
         Long dateMillis=CommonUtil.getDateEquivalent(date);
         if(customerStatus==CustomerStatus.COLD && task.getCustomer().getStatus()==CustomerStatus.COLD){
             task.setStatus(TaskStatus.NO_CONVERSION);
             customerStatusFinal=CustomerStatus.CLOSED;
-        }else if(customerStatus!=CustomerStatus.COMPLETED){
-            Task followUpTask=createTask(task.getCustomer(), task.getSalesMan(), dateMillis);
-            followUpTask.setStatus(TaskStatus.FOLLOW_UP);
-            customerStatusFinal=customerStatus;
-            task.setStatus(TaskStatus.FOLLOW_UP_TASK_SCHEDULED);
+        }else{
+            if(customerStatus==CustomerStatus.CLOSED || customerStatus==CustomerStatus.COMPLETED){
+                task.setStatus(customerStatus==CustomerStatus.COMPLETED?TaskStatus.CONVERSION:TaskStatus.NO_CONVERSION);
+            }else {
+                Task followUpTask=createTask(task.getCustomer(), task.getSalesMan(), date+CommonUtil.getMillisForDays(1L));
+                followUpTask.setStatus(TaskStatus.FOLLOW_UP);
+                task.setStatus(TaskStatus.FOLLOW_UP_TASK_SCHEDULED);
+                followUpTaskId=followUpTask.getId();
+            }
         }
         task.getCustomer().setStatus(customerStatusFinal);
         task.setLastUpdatedDate(dateMillis);
         task.getCustomer().setLastUpdatedTime(dateMillis);
+        return followUpTaskId;
     }
     Map<String, List<Task>> getTasks(Integer salesManId, Long date){
         List<Task> open=new ArrayList<>();
@@ -68,5 +74,12 @@ public class TaskService extends CommonConstants {
             taskSummary.put("CLOSED", closed);
         }
         return taskSummary;
+    }
+    List<Task> getAllTasks(){
+        List<Task> tasks=new ArrayList<>();
+        tasksList.forEach((k, v)->{
+            tasks.add(v);
+        });
+        return tasks;
     }
 }

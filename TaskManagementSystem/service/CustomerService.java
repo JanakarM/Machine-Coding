@@ -10,12 +10,16 @@ import design_1.model.Customer;
 
 public class CustomerService extends CommonConstants {
     Map<Integer, Customer> customerList=new HashMap<>();
-    void addCustomer(String name, String email){
+    Integer addCustomer(String name, String email){
         int customerId=userIds.incrementAndGet();
         Customer customer=new Customer(customerId, name, email, CustomerStatus.NEW);
         customerList.put(customerId, customer);
+        return customerId;
     }
     void removeCustomer(Integer customerId){
         customerList.remove(customerId);
+    }
+    Customer getCustomer(Integer customerId){
+        return customerList.get(customerId);
     }
 }

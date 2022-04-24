@@ -11,38 +11,53 @@ import design_1.model.SalesMan;
 import design_1.model.Task;
 import design_1.utils.CommonUtil;
 
-public class TaskManagementService extends CommonConstants{
-    CustomerService customerService;
-    SalesService salesService;
-    TaskService taskService;
-    void addSalesMan(String name, String email){
-        salesService.addSalesMan(name, email);
+public class TaskManagementService{
+    public CustomerService customerService;
+    public SalesService salesService;
+    public TaskService taskService;
+    public Integer addSalesMan(String name, String email){
+        return salesService.addSalesMan(name, email);
     }
-    void removeSalesMan(Integer salesManId){
+    public void removeSalesMan(Integer salesManId){
         salesService.removeSalesMan(salesManId);
     }
-    void updateAvailability(Integer salesManId, boolean status){
+    public void updateAvailability(Integer salesManId, boolean status){
         salesService.updateAvailability(salesManId, status);
     }
-    void addCustomer(String name, String email){
-        customerService.addCustomer(name, email);
+    public Integer addCustomer(String name, String email){
+        return customerService.addCustomer(name, email);
     }
-    void removeCustomer(Integer customerId){
+    public void removeCustomer(Integer customerId){
         customerService.removeCustomer(customerId);
     }
-    void addTask(Customer customer, SalesMan salesMan, Long date){
-        taskService.createTask(customer, salesMan, System.currentTimeMillis()+ CommonUtil.getMillisForDays(7L));
-    }
-    void updateTaskStatus(Integer taskId, CustomerStatus customerStatus, Long date) {
-        taskService.updateTaskStatus(taskId, customerStatus, date);
-        if(customerStatus==CustomerStatus.COMPLETED){
-            salesService.addIncentive(1L, date, CommonConstants.incentiveAmount);
+    public Integer addTask(Customer customer, SalesMan salesMan, Long date){
+        long thresholdDate=System.currentTimeMillis();
+        thresholdDate+=CommonUtil.getMillisForDays(7L);
+        if(date<=thresholdDate){
+           throw new IllegalStateException("Task should be created before 7 days");
         }
+        return taskService.createTask(customer, salesMan, date).getId();
     }
-    Long getIncentive(Long salesManId, Long date){
+    public Integer updateTaskStatus(Integer taskId, CustomerStatus customerStatus, Long date) {
+        Integer followTaskId=taskService.updateTaskStatus(taskId, customerStatus, date);
+        if(customerStatus==CustomerStatus.COMPLETED){
+            salesService.addIncentive(Long.valueOf(taskService.tasksList.get(taskId).getSalesMan().getId()), date, CommonConstants.incentiveAmount);
+        }
+        return followTaskId;
+    }
+    public Long getIncentive(Long salesManId, Long date){
         return salesService.getIncentive(salesManId, date);
     }
-    Map<String, List<Task>> getTasks(Integer salesManId, Long date){
+    public Map<String, List<Task>> getTasks(Integer salesManId, Long date){
         return taskService.getTasks(salesManId, date);
+    }
+    public SalesMan getSalesMan(Integer salesManId) {
+        return salesService.getSalesMan(salesManId);
+    }
+    public Customer getCustomer(Integer id){
+        return customerService.getCustomer(id);
+    }
+    public List<Task> getAllTasks(){
+        return taskService.getAllTasks();
     }
 }
